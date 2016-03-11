@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Book Trading Club</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <style>
+    body { word-wrap:break-word; }
+  </style>
+  <!--
+  <script>
+    $(document).ready(function() {
+      var addedSymbol = "";
+
+      $("#add").click(function() {
+        var addedSymbol = $("#addVal").val();
+    var title = "";
+    var imgLink = "";
+        $.get("https://www.googleapis.com/books/v1/volumes?q=" + addedSymbol, function(data) {
+        title = data.items[0].volumeInfo.title;
+        imgLink = data.items[0].volumeInfo.imageLinks.smallThumbnail
+    
+    
+    $("#newSym").append('<div class="col-sm-3 well"><input type="button" id="removebtn" class="removebtn btn btn-danger" value="X"/><p class="text-center">' + title +'</p><img class="center-block text-center" src="' + imgLink +'"</div>');
+    });
+        
+      });
+      $('#newSym').on("click", ".removebtn", function() {
+        $(this).parent().remove();
+      });
+    
+    });
+  </script>-->
+</head>
+
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/">Home</a></li>
+        <li><a href="/books">Books</a></li>
+        <li class="active"><a href="/profile">Profile</a></li>
+      </ul>
+    </div>
+  </nav>
+  <br>
+  <div class="page-header text-center">
+    <h1>Profile Page</h1>
+    <a href="/update" class="btn btn-default btn-sm">Update Profile</a>
+    <a href="/mybooks" class="btn btn-default btn-sm">My Books</a>
+    <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+    <br>
+  </div>
+  <br>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="well">
+          <h3><span class="glyphicon glyphicon-user"></span> Profile Info</h3>
+          <% if (user.local.email) { %>
+            <p>
+              <% if(user.local.name) { %><strong>Name</strong>:
+                <%= user.local.name %><br>
+              <% } %>
+                <strong>Email</strong>:
+                <%= user.local.email %><br>
+              <% if(user.local.state) {%><strong>State</strong>:
+                  <%= user.local.state %><br>
+              <% } %>
+              <% if(user.local.city) { %><strong>City</strong>:
+                <%= user.local.city %><br>
+              <% } %>
+            </p>
+            <% } %>
+        </div>
+      </div>
+    </div>
+    <!--
+    <div class="center-block well well-sm text-center">
+      <h3><span class="glyphicon glyphicon-book"></span> My Books</h3>
+    </div>
+    <div class="col-sm-12 well center-block text-center">
+      <form class="form-group" action="/addBook" method="post">
+        <fieldset>
+          <input type="submit" id="add" class="btn btn-secondary center-block" value="Add Book" />
+          <br>
+          <input id="addVal" name="title" type="text" class="form-group" placeholder="Book Title" required/>
+        </fieldset>
+      </form>
+    </div>
+    <div id="newSym">
+    </div>
+    -->
+  </div>
+  
+
+  <div class="container"> 
+  
+  
+  <% if (user.theirReqs.length) {%>
+    <div class="jumbotron">
+      <h3 class="text-center">Requests for you</h3>
+    </div>
+    <div class="well row" id="theirReqs">
+      <% user.theirReqs.forEach(function(doc){ %>
+        <div class="col-sm-3 well"><p class="text-center">user name Wants</p><p class="text-center"><%= doc.title%></p><img class="center-block text-center" src="<%= doc.imgLink%>" /><p class="text-center">By:<%= doc.author %></p><form style="display: inline-block" method="post" action="/denyRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span></button></form><form style="display: inline-block; float: right;" method="post" action="/confirmRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span></button></form></div>  
+      <% }) %>
+    </div>
+  <% } %>
+  
+  
+  <% if (user.yourReqs.length) {%>
+    <div class="jumbotron">
+      <h3 class="text-center">Your Requests</h3>
+    </div>
+    <div class="well row" id="yourReqs">
+      <% user.yourReqs.forEach(function(doc){ %>
+        <div class="col-sm-3 well"><p class="text-center">You Want</p><p class="text-center"><%= doc.title%></p><img class="center-block text-center" src="<%= doc.imgLink%>"/><p class="text-center">By: <%= doc.author %></p><form method="post" action="/cancelRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span></button></form></div>
+      <% }) %>
+    </div>
+  <% } %>
+  </div>
+  <br>
+  <br>
+    
+</body>
+
+</html>

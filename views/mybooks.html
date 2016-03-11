@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Book Trading Club</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <style>
+    body { word-wrap:break-word; }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/">Home</a></li>
+        <li><a href="/books">Books</a></li>
+        <li><a href="/profile">Profile</a></li>
+      </ul>
+    </div>
+  </nav>
+  <br>
+  <div class="page-header text-center">
+    <h1><span class="glyphicon glyphicon-book"></span> My Books</h1>
+  </div>
+  <br>
+  <div class="container">
+    <div class="col-sm-12 well center-block text-center">
+      <form class="form-group" action="/addBook" method="post">
+        <fieldset>
+          <input type="submit" id="add" class="btn btn-secondary center-block" value="Add Book" />
+          <br>
+          <input id="addVal" name="title" type="text" class="form-group" placeholder="Book Title" required/>
+        </fieldset>
+      </form>
+    </div>
+    <div id="newSym">
+    </div>
+  </div>
+</body>
+
+</html>
