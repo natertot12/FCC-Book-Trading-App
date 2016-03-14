@@ -1,0 +1,43 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <style>
+  #chat {
+    height: 500px;
+  }
+  </style>
+  <script>
+    $(document).ready(function() {
+  var socket = io.connect('http://timestamp-natertot12.c9users.io:8080/');
+  var $messageForm = $("#send-message");
+  var $messageBox = $("#message");
+  var $chat = $("#chat");
+  socket.on('des', function(data) {
+    $('#description').text(data);
+  });
+  $messageForm.submit(function(e) {
+    e.preventDefault();
+    socket.emit('send message', $messageBox.val());
+    $messageBox.val("");
+  });
+  
+  socket.on('new message', function(data) {
+    $chat.append(data + "<br/>");
+  });
+  
+});
+  </script>
+</head>
+<body>
+    
+    
+  <div id="chat"></div>
+  <form id="send-message">
+    <input size"35" id="message"></input>
+    <input type="submit"></input>
+  </form>
+  <h3 id="description">asdf</h3>
+</body>
+</html>

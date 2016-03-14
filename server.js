@@ -2,6 +2,7 @@
 
 //make name city state required
 
+//when searching for users look for bookId because req.user._id and data.owner are the same so it doesnt erase the right things
 
 // set up ======================================================================
 // get all the tools we need
@@ -49,6 +50,11 @@ var fs = require('fs');
 
 var User       = require('./app/models/user');
 
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
+//server.listen(port);
+
+
 mongo.connect(mongoUrl, function(err, db) {
     if(err) throw err;
     
@@ -83,7 +89,6 @@ mongo.connect(mongoUrl, function(err, db) {
     app.post('/request/:id', function(req, res) {
        var id = req.params.id;
        var ObjectID = require('mongodb').ObjectID;
-       //var user = req.user;
        db.collection("books").findOne({_id: ObjectID(id)}, function(err, data) {
            if(err) throw err;
            if(data != null) {
@@ -107,8 +112,8 @@ mongo.connect(mongoUrl, function(err, db) {
                console.log(req.user._id.toString());
                console.log("author " + data.owner);
                 //if(data.owner.toString() !== req.user._id.toString()) {
-                    User.findOneAndUpdate({_id: req.user._id}, { $pull: { yourReqs:  { user: data.owner, bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} );//user requsting update
-                    User.findOneAndUpdate({_id: data.owner  }, { $pull: { theirReqs: { user: req.user._id, bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} ); //user recieving request
+                    User.findOneAndUpdate({_id: req.user._id }, { $pull: { yourReqs:  { user: data.owner  , bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} );//user requsting update
+                    User.findOneAndUpdate({_id: data.owner}, { $pull: { theirReqs: { user: req.user._id, bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} ); //user recieving request
                 //}
                 res.redirect('back');
            }
@@ -123,15 +128,20 @@ mongo.connect(mongoUrl, function(err, db) {
            if(data != null) {
                console.log(req.user._id.toString());
                console.log("author " + data.owner);
-                User.findOneAndUpdate({_id: req.user._id}, { $pull: { theirReqs:  { user: data.owner, bookID:id} } });
-                User.findOneAndUpdate({_id: data.owner  }, { $pull: { yourReqs: { user: req.user._id, bookID:id} } });
+                //User.findOneAndUpdate({_id: req.user._id}, { $pull: { theirReqs:  { user: data.owner, bookID:id} } });
+                //User.findOneAndUpdate({_id: data.owner  }, { $pull: { yourReqs: { user: req.user._id, bookID:id} } });
+                
+                
+                User.findOneAndUpdate({"theirReqs.bookID": id }, { $pull: { theirReqs:  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
+                User.findOneAndUpdate({"yourReqs.bookID" : id }, { $pull: { yourReqs :  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
+                
                 //send message that the other user denied
                 res.redirect('back');
            }
        });
     });
     
-    app.post('/acceptRequest/:id', function(req, res) {
+    app.post('/confirmRequest/:id', function(req, res) {
         var id = req.params.id;
         var ObjectID = require('mongodb').ObjectID;
         db.collection("books").findOne({_id: ObjectID(id)}, function(err, data) {
@@ -139,8 +149,8 @@ mongo.connect(mongoUrl, function(err, db) {
             if(data != null) {
                 console.log(req.user._id.toString());
                 console.log("author " + data.owner);
-                User.findOneAndUpdate({_id: req.user._id}, { $pull: { theirReqs:  { user: data.owner, bookID:id} } });
-                User.findOneAndUpdate({_id: data.owner  }, { $pull: { yourReqs: { user: req.user._id, bookID:id} } });
+                User.findOneAndUpdate({"theirReqs.bookID": id }, { $pull: { theirReqs:  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
+                User.findOneAndUpdate({"yourReqs.bookID" : id }, { $pull: { yourReqs :  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
                 //send message that the other user confirmed
                 res.redirect('back');
             }
@@ -220,6 +230,11 @@ mongo.connect(mongoUrl, function(err, db) {
     app.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
+    });
+    
+    
+    app.get('/test', function(req, res) {
+        res.render('test.ejs');
     });
 
 // =============================================================================
@@ -313,6 +328,15 @@ function isLoggedIn(req, res, next) {
 
 
 // launch ======================================================================
-app.listen(port);
+server.listen(port);
+
+io.on('connection', function(socket) {
+    socket.emit('des', "hello");
+    socket.on('send message', function(data) {
+        io.sockets.emit('new message', data);
+    });
+});
+
+
 console.log('The magic happens on port ' + port);
 });
