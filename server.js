@@ -1,8 +1,7 @@
 // server.js
 
 //make name city state required
-
-//when searching for users look for bookId because req.user._id and data.owner are the same so it doesnt erase the right things
+//add back in the error message thing that got erased...
 
 // set up ======================================================================
 // get all the tools we need
@@ -54,6 +53,8 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 //server.listen(port);
 
+var errorMessage = "";
+
 
 mongo.connect(mongoUrl, function(err, db) {
     if(err) throw err;
@@ -89,18 +90,23 @@ mongo.connect(mongoUrl, function(err, db) {
     app.post('/request/:id', function(req, res) {
        var id = req.params.id;
        var ObjectID = require('mongodb').ObjectID;
-       db.collection("books").findOne({_id: ObjectID(id)}, function(err, data) {
-           if(err) throw err;
-           if(data != null) {
-               console.log(req.user._id.toString());
-               console.log("author " + data.owner);
-                if(data.owner.toString() !== req.user._id.toString()) {
-                    User.findOneAndUpdate({_id: req.user._id}, { $push: { yourReqs:  { user: data.owner  , bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} );//user requsting update
-                    User.findOneAndUpdate({_id: data.owner  }, { $push: { theirReqs: { user: req.user._id, bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} ); //user recieving request
-                }
-                res.redirect('back');
-           }
-       });
+       if(req.user.local.state && req.user.local.city && req.user.local.name) {
+           db.collection("books").findOne({_id: ObjectID(id)}, function(err, data) {
+               if(err) throw err;
+               if(data != null) {
+                   console.log(req.user._id.toString());
+                   console.log("author " + data.owner);
+                    if(data.owner.toString() !== req.user._id.toString()) {
+                        User.findOneAndUpdate({_id: req.user._id}, { $push: { yourReqs:  { user: data.owner  , bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} );//user requsting update
+                        User.findOneAndUpdate({_id: data.owner  }, { $push: { theirReqs: { user: req.user._id, bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} ); //user recieving request
+                    }
+                    res.redirect('back');
+               }
+           });
+       } else {
+           errorMessage = '<div class="alert alert-danger text-center"><p><strong>Error!</strong> Please update your profile completely</p></div>';
+           res.redirect('back');
+       }
     });
     
     app.post('/cancelRequest/:id', function(req, res) {
@@ -112,8 +118,8 @@ mongo.connect(mongoUrl, function(err, db) {
                console.log(req.user._id.toString());
                console.log("author " + data.owner);
                 //if(data.owner.toString() !== req.user._id.toString()) {
-                    User.findOneAndUpdate({_id: req.user._id }, { $pull: { yourReqs:  { user: data.owner  , bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} );//user requsting update
-                    User.findOneAndUpdate({_id: data.owner}, { $pull: { theirReqs: { user: req.user._id, bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} ); //user recieving request
+                    User.findOneAndUpdate({_id: req.user._id}, { $pull: { yourReqs:  { user: data.owner, bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} );//user requsting update
+                    User.findOneAndUpdate({_id: data.owner  }, { $pull: { theirReqs: { user: req.user._id, bookID:id} } }, function(err, data) {if(err) throw err; console.log(data);} ); //user recieving request
                 //}
                 res.redirect('back');
            }
@@ -128,20 +134,15 @@ mongo.connect(mongoUrl, function(err, db) {
            if(data != null) {
                console.log(req.user._id.toString());
                console.log("author " + data.owner);
-                //User.findOneAndUpdate({_id: req.user._id}, { $pull: { theirReqs:  { user: data.owner, bookID:id} } });
-                //User.findOneAndUpdate({_id: data.owner  }, { $pull: { yourReqs: { user: req.user._id, bookID:id} } });
-                
-                
-                User.findOneAndUpdate({"theirReqs.bookID": id }, { $pull: { theirReqs:  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
-                User.findOneAndUpdate({"yourReqs.bookID" : id }, { $pull: { yourReqs :  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
-                
+                User.findOneAndUpdate({_id: req.user._id}, { $pull: { theirReqs:  { user: data.owner, bookID:id} } });
+                User.findOneAndUpdate({_id: data.owner  }, { $pull: { yourReqs: { user: req.user._id, bookID:id} } });
                 //send message that the other user denied
                 res.redirect('back');
            }
        });
     });
     
-    app.post('/confirmRequest/:id', function(req, res) {
+    app.post('/acceptRequest/:id', function(req, res) {
         var id = req.params.id;
         var ObjectID = require('mongodb').ObjectID;
         db.collection("books").findOne({_id: ObjectID(id)}, function(err, data) {
@@ -149,8 +150,8 @@ mongo.connect(mongoUrl, function(err, db) {
             if(data != null) {
                 console.log(req.user._id.toString());
                 console.log("author " + data.owner);
-                User.findOneAndUpdate({"theirReqs.bookID": id }, { $pull: { theirReqs:  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
-                User.findOneAndUpdate({"yourReqs.bookID" : id }, { $pull: { yourReqs :  { bookID:id } } }, function(err, data) {if(err)throw err; console.log(data);});
+                User.findOneAndUpdate({_id: req.user._id}, { $pull: { theirReqs:  { user: data.owner, bookID:id} } });
+                User.findOneAndUpdate({_id: data.owner  }, { $pull: { yourReqs: { user: req.user._id, bookID:id} } });
                 //send message that the other user confirmed
                 res.redirect('back');
             }
@@ -169,6 +170,8 @@ mongo.connect(mongoUrl, function(err, db) {
         fs.readFile((path.join(__dirname + '/views/books.html')), function(err, result) {
         if (err) throw err;
             res.write(result);
+            if(errorMessage) res.write(errorMessage);
+            errorMessage = "";
             //db.collection("books").count({}, function (error, count) {
             db.collection("books").find({owner: { $ne: req.user._id.toString() } }).count({}, function (error, count) {
                 if(error) throw error;
