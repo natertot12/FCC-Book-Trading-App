@@ -1,10 +1,8 @@
 // server.js
 
-//make name city state required
-//add back in the error message thing that got erased...
+//eventually add a private messaging to this so after users trade they can send messages about when and where to meetup
 
 // set up ======================================================================
-// get all the tools we need
 var express  = require('express');
 var app      = express();
 var port     = process.env.PORT || 8080;
@@ -20,47 +18,31 @@ var session      = require('express-session');
 var configDB = require('./config/database.js');
 
 // configuration ===============================================================
-mongoose.connect(configDB.url); // connect to our database
-
-require('./config/passport')(passport); // pass passport for configuration
-
-// set up our express application
-app.use(morgan('dev')); // log every request to the console
-app.use(cookieParser()); // read cookies (needed for auth)
-app.use(bodyParser.json()); // get information from html forms
+mongoose.connect(configDB.url);
+require('./config/passport')(passport);
+app.use(morgan('dev'));
+app.use(cookieParser());
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-app.set('view engine', 'ejs'); // set up ejs for templating
-
-// required for passport
-app.use(session({ secret: 'mysecret' })); // session secret
+app.set('view engine', 'ejs');
+app.use(session({ secret: 'mysecret' }));
 app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
-app.use(flash()); // use connect-flash for flash messages stored in sessions
+app.use(passport.session());
+app.use(flash());
 
 
+// requirements ================================================================
 var mongo = require('mongodb').MongoClient;
 var mongoUrl = 'mongodb://localhost:27017/books';
-
 var request = require('request');
-
 var path = require('path');
 var fs = require('fs');
-
 var User       = require('./app/models/user');
-
-var server = require('http').createServer(app);
-var io = require('socket.io').listen(server);
-//server.listen(port);
-
+//var server = require('http').createServer(app);
+//var io = require('socket.io').listen(server);
 var errorMessage = "";
-
-
 mongo.connect(mongoUrl, function(err, db) {
     if(err) throw err;
-    
-
-
 // normal posts  ===============================================================
     app.post('/addBook', function(req, res) {
         var query = req.body.title;
@@ -104,7 +86,7 @@ mongo.connect(mongoUrl, function(err, db) {
                }
            });
        } else {
-           errorMessage = '<div class="alert alert-danger text-center"><p><strong>Error!</strong> Please update your profile completely</p></div>';
+           errorMessage = '<div class="alert alert-danger text-center"><a class="close" onclick="$(&apos;.alert&apos;).hide()">&times;</a><p><strong>Error!</strong> Please update your profile completely</p></div>';
            res.redirect('back');
        }
     });
@@ -163,6 +145,7 @@ mongo.connect(mongoUrl, function(err, db) {
 
     // show the home page (will also have our login links)
     app.get('/', function(req, res) {
+        req.logout();
         res.render('index.ejs');
     });
     
@@ -221,29 +204,19 @@ mongo.connect(mongoUrl, function(err, db) {
             user : req.user
         });
     });
-
-    // PROFILE SECTION =========================
     app.get('/profile', isLoggedIn, function(req, res) {
         res.render('profile.ejs', {
             user : req.user
         });
     });
-
-    // LOGOUT ==============================
     app.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
     });
     
-    
-    app.get('/test', function(req, res) {
-        res.render('test.ejs');
-    });
-
 // =============================================================================
 // AUTHENTICATE (FIRST LOGIN) ==================================================
 // =============================================================================
-    // locally --------------------------------
         // LOGIN ===============================
         // show the login form
         app.get('/login', function(req, res) {
@@ -269,7 +242,6 @@ mongo.connect(mongoUrl, function(err, db) {
 // =============================================================================
 // AUTHORIZE (ALREADY LOGGED IN / CONNECTING OTHER SOCIAL ACCOUNT) =============
 // =============================================================================
-    // locally --------------------------------
         app.get('/connect/local', function(req, res) {
             res.render('connect-local.ejs', { message: req.flash('loginMessage') });
         });
@@ -281,10 +253,6 @@ mongo.connect(mongoUrl, function(err, db) {
 // =============================================================================
 // UNLINK ACCOUNTS =============================================================
 // =============================================================================
-// used to unlink accounts.
-// for local account, remove email and password
-// user account will stay active in case they want to reconnect in the future
-    // local -----------------------------------
     app.get('/unlink/local', isLoggedIn, function(req, res) {
         var user            = req.user;
         user.local.email    = undefined;
@@ -316,10 +284,7 @@ app.post('/update', function(req, res) {
         res.redirect('/profile');
     });
 });
-    
-    
-    
-    
+
 // route middleware to ensure user is logged in
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
@@ -331,15 +296,6 @@ function isLoggedIn(req, res, next) {
 
 
 // launch ======================================================================
-server.listen(port);
-
-io.on('connection', function(socket) {
-    socket.emit('des', "hello");
-    socket.on('send message', function(data) {
-        io.sockets.emit('new message', data);
-    });
-});
-
-
-console.log('The magic happens on port ' + port);
+    app.listen(port);
+    console.log('The magic happens on port ' + port);
 });

@@ -8,30 +8,6 @@
   <style>
     body { word-wrap:break-word; }
   </style>
-  <!--
-  <script>
-    $(document).ready(function() {
-      var addedSymbol = "";
-
-      $("#add").click(function() {
-        var addedSymbol = $("#addVal").val();
-    var title = "";
-    var imgLink = "";
-        $.get("https://www.googleapis.com/books/v1/volumes?q=" + addedSymbol, function(data) {
-        title = data.items[0].volumeInfo.title;
-        imgLink = data.items[0].volumeInfo.imageLinks.smallThumbnail
-    
-    
-    $("#newSym").append('<div class="col-sm-3 well"><input type="button" id="removebtn" class="removebtn btn btn-danger" value="X"/><p class="text-center">' + title +'</p><img class="center-block text-center" src="' + imgLink +'"</div>');
-    });
-        
-      });
-      $('#newSym').on("click", ".removebtn", function() {
-        $(this).parent().remove();
-      });
-    
-    });
-  </script>-->
 </head>
 
 <body>
