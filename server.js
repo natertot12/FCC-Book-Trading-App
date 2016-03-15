@@ -79,8 +79,8 @@ mongo.connect(mongoUrl, function(err, db) {
                    console.log(req.user._id.toString());
                    console.log("author " + data.owner);
                     if(data.owner.toString() !== req.user._id.toString()) {
-                        User.findOneAndUpdate({_id: req.user._id}, { $push: { yourReqs:  { user: data.owner  , bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} );//user requsting update
-                        User.findOneAndUpdate({_id: data.owner  }, { $push: { theirReqs: { user: req.user._id, bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} ); //user recieving request
+                        User.findOneAndUpdate({_id: req.user._id}, { $push: { yourReqs:  { user: data.owner  , bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink, userRequesting: req.user.local.name} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} );//user requsting update
+                        User.findOneAndUpdate({_id: data.owner  }, { $push: { theirReqs: { user: req.user._id, bookID:id, owner: data.owner, title: data.title, author: data.author, imgLink: data.imgLink, userRequesting: req.user.local.name} } }, function(err, data) {if(err) throw err; /*console.log(data);*/} ); //user recieving request
                     }
                     res.redirect('back');
                }

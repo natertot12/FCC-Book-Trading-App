@@ -80,7 +80,7 @@
     </div>
     <div class="well row" id="theirReqs">
       <% user.theirReqs.forEach(function(doc){ %>
-        <div class="col-sm-3 well"><p class="text-center">user name Wants</p><p class="text-center"><%= doc.title%></p><img class="center-block text-center" src="<%= doc.imgLink%>" /><p class="text-center">By:<%= doc.author %></p><form style="display: inline-block" method="post" action="/denyRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span></button></form><form style="display: inline-block; float: right;" method="post" action="/confirmRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span></button></form></div>  
+        <div class="col-sm-3 well"><p class="text-center"><%=doc.userRequesting%> Wants</p><p class="text-center"><%= doc.title%></p><img class="center-block text-center" src="<%= doc.imgLink%>" /><p class="text-center">By:<%= doc.author %></p><form style="display: inline-block" method="post" action="/denyRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span></button></form><form style="display: inline-block; float: right;" method="post" action="/confirmRequest/<%= doc.bookID %>"><button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span></button></form></div>  
       <% }) %>
     </div>
   <% } %>
